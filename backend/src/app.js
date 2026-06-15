@@ -14,7 +14,7 @@ const userRouter = require("./routes/user.routes");
 const allowedOrigins = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
-  "https://edutrack-gray.vercel.app"
+  "https://edu-track-psi-dun.vercel.app"
 ];
 
 dotenv.config();
