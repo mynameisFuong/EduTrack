@@ -27,7 +27,9 @@ const app = express();
 
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    const isVercelDomain = origin && origin.endsWith(".vercel.app");
+
+    if (!origin || allowedOrigins.includes(origin) || isVercelDomain) {
       return callback(null, true);
     }
 
