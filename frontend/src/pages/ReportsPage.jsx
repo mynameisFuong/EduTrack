@@ -175,7 +175,6 @@ export default function ReportsPage() {
                       <div className="action-menu-list action-menu-list-wide">
                         <span className="action-menu-label">Phiếu #{report.id}</span>
                         <button type="button" className="action-primary" onClick={() => openReportDetail(report)}>Xem chi tiết</button>
-                        <button type="button" onClick={() => updateStatus(report, "PENDING")}>Chờ xử lý</button>
                         <button type="button" className="action-primary" onClick={() => openRepairForm(report)}>Hoàn thành</button>
                       </div>
                     )}

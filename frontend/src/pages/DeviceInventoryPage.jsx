@@ -45,6 +45,7 @@ export default function DeviceInventoryPage() {
   const initialRoomId = searchParams.get("roomId") || "";
 
   const [devices, setDevices] = useState([]);
+  const [deviceCounts, setDeviceCounts] = useState({ all: 0, good: 0, broken: 0, repairing: 0 });
   const [rooms, setRooms] = useState([]);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
@@ -72,13 +73,30 @@ export default function DeviceInventoryPage() {
     setError("");
 
     try {
-      const res = await api.get("/devices", {
-        params: {
-          ...(search ? { search } : {}),
-          ...(typeFilter ? { type: typeFilter } : {}),
-          ...(roomFilter ? { roomId: roomFilter } : {}),
-          ...(statusFilter ? { status: statusFilter } : {})
-        }
+      const baseParams = {
+        ...(search ? { search } : {}),
+        ...(typeFilter ? { type: typeFilter } : {}),
+        ...(roomFilter ? { roomId: roomFilter } : {})
+      };
+
+      const [res, countRes] = await Promise.all([
+        api.get("/devices", {
+          params: {
+            ...baseParams,
+            ...(statusFilter ? { status: statusFilter } : {})
+          }
+        }),
+        api.get("/devices", {
+          params: baseParams
+        })
+      ]);
+
+      const countDevices = countRes.data;
+      setDeviceCounts({
+        all: countDevices.length,
+        good: countDevices.filter((device) => device.status === "GOOD").length,
+        broken: countDevices.filter((device) => device.status === "BROKEN").length,
+        repairing: countDevices.filter((device) => device.status === "REPAIRING").length
       });
       setDevices(res.data);
     } catch (err) {
@@ -96,9 +114,6 @@ export default function DeviceInventoryPage() {
     loadDevices();
   }, [typeFilter, roomFilter, statusFilter]);
 
-  const goodCount = devices.filter((device) => device.status === "GOOD").length;
-  const brokenCount = devices.filter((device) => device.status === "BROKEN").length;
-  const repairingCount = devices.filter((device) => device.status === "REPAIRING").length;
   const canManageDevices = user?.role === "ADMIN";
   const canCreateRepairLog = user?.role === "ADMIN" || user?.role === "TECHNICIAN";
 
@@ -208,18 +223,8 @@ export default function DeviceInventoryPage() {
     navigate(`/repair-logs/new?deviceId=${device.id}`);
   }
 
-  function openRepairHistory(device) {
-    if (!canCreateRepairLog) {
-      showPermissionDenied();
-      return;
-    }
-
-    setOpenActionDeviceId(null);
-    navigate(`/devices/${device.id}/history`);
-  }
-
   return (
-    <AppLayout active="devices" title="Quản lý thiết bị" subtitle={`${devices.length} thiết bị trong hệ thống`} user={user}>
+    <AppLayout active="devices" title="Quản lý thiết bị" subtitle={`${deviceCounts.all} thiết bị trong hệ thống`} user={user}>
       <div className="admin-page-toolbar">
         <button type="button" className="primary-action" onClick={openCreateForm}>+ Thêm thiết bị</button>
       </div>
@@ -238,10 +243,10 @@ export default function DeviceInventoryPage() {
       </section>
 
       <div className="filter-pills">
-        <button type="button" className={!statusFilter ? "active" : ""} onClick={() => setStatusFilter("")}>Tất cả ({devices.length})</button>
-        <button type="button" className={statusFilter === "GOOD" ? "active" : ""} onClick={() => setStatusFilter("GOOD")}>Hoạt động tốt ({goodCount})</button>
-        <button type="button" className={statusFilter === "BROKEN" ? "active" : ""} onClick={() => setStatusFilter("BROKEN")}>Hỏng ({brokenCount})</button>
-        <button type="button" className={statusFilter === "REPAIRING" ? "active" : ""} onClick={() => setStatusFilter("REPAIRING")}>Đang bảo trì ({repairingCount})</button>
+        <button type="button" className={!statusFilter ? "active" : ""} onClick={() => setStatusFilter("")}>Tất cả ({deviceCounts.all})</button>
+        <button type="button" className={statusFilter === "GOOD" ? "active" : ""} onClick={() => setStatusFilter("GOOD")}>Hoạt động tốt ({deviceCounts.good})</button>
+        <button type="button" className={statusFilter === "BROKEN" ? "active" : ""} onClick={() => setStatusFilter("BROKEN")}>Hỏng ({deviceCounts.broken})</button>
+        <button type="button" className={statusFilter === "REPAIRING" ? "active" : ""} onClick={() => setStatusFilter("REPAIRING")}>Đang bảo trì ({deviceCounts.repairing})</button>
       </div>
 
       {message && <p className="success-message">{message}</p>}
@@ -292,9 +297,8 @@ export default function DeviceInventoryPage() {
                     <div className="action-menu-list action-menu-list-wide">
                       <span className="action-menu-label">Thiết bị</span>
                       <button type="button" onClick={() => startEdit(device)}>Sửa</button>
-                      <button type="button" className="danger-button" onClick={() => deleteDevice(device)}>Xóa</button>
                       <button type="button" className="action-primary" onClick={() => openMaintenance(device)}>Bảo trì</button>
-                      <button type="button" onClick={() => openRepairHistory(device)}>Xem lịch sử sửa chữa</button>
+                      <button type="button" className="danger-button" onClick={() => deleteDevice(device)}>Xóa</button>
                     </div>
                     )}
                   </div>

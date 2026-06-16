@@ -51,7 +51,7 @@ export default function AppLayout({ active, title, subtitle, user, children }) {
     <main className="app-shell dashboard-app admin-dark-app">
       <aside className="sidebar dashboard-sidebar admin-sidebar">
         <div className="sidebar-brand admin-brand">
-          <div className="brand-icon">X</div>
+          <img className="brand-icon" src="/logo_ptit.png" alt="PTIT" />
           <div>
             <p>CSVC</p>
             <span>Quản lý thiết bị phòng học</span>
@@ -104,7 +104,6 @@ export default function AppLayout({ active, title, subtitle, user, children }) {
 
       <section className="content-panel dashboard-content admin-content">
         <div className="admin-topbar">
-          <div className="topbar-title">{title}</div>
           <div className="topbar-actions">
             <button
               type="button"

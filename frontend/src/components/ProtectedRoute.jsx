@@ -3,20 +3,36 @@ import { Navigate, useNavigate } from "react-router-dom";
 
 const INACTIVITY_LIMIT = 30 * 60 * 1000;
 
+function clearSession() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+}
+
+function getTokenExpiry(token) {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return typeof payload.exp === "number" ? payload.exp * 1000 : null;
+  } catch {
+    return null;
+  }
+}
+
 export default function ProtectedRoute({ children }) {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
+  const tokenExpiry = token ? getTokenExpiry(token) : null;
+  const isTokenExpired = token ? !tokenExpiry || tokenExpiry <= Date.now() : true;
 
   useEffect(() => {
-    if (!token) {
+    if (!token || isTokenExpired) {
       return undefined;
     }
 
     let timeoutId;
+    let expiryTimeoutId;
 
     function logoutByInactivity() {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
+      clearSession();
       navigate("/login", { replace: true });
     }
 
@@ -28,14 +44,17 @@ export default function ProtectedRoute({ children }) {
     const events = ["click", "keydown", "mousemove", "scroll", "touchstart"];
     events.forEach((eventName) => window.addEventListener(eventName, resetTimer));
     resetTimer();
+    expiryTimeoutId = window.setTimeout(logoutByInactivity, Math.max(tokenExpiry - Date.now(), 0));
 
     return () => {
       window.clearTimeout(timeoutId);
+      window.clearTimeout(expiryTimeoutId);
       events.forEach((eventName) => window.removeEventListener(eventName, resetTimer));
     };
-  }, [navigate, token]);
+  }, [isTokenExpired, navigate, token, tokenExpiry]);
 
-  if (!token) {
+  if (!token || isTokenExpired) {
+    clearSession();
     return <Navigate to="/login" replace />;
   }
 
