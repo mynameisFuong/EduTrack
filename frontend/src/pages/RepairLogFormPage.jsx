@@ -38,7 +38,7 @@ export default function RepairLogFormPage() {
       return;
     }
 
-    if (!deviceId) {
+    if (!deviceId || isCompletingReport) {
       return;
     }
 
@@ -70,8 +70,9 @@ export default function RepairLogFormPage() {
 
     try {
       const payload = {
-        deviceId: Number(deviceId),
+        deviceId: deviceId ? Number(deviceId) : undefined,
         reportId: reportId ? Number(reportId) : undefined,
+        completeReport: isCompletingReport,
         quantity: Number(form.quantity),
         repairedAt: form.repairedAt,
         content: form.content,
@@ -110,12 +111,16 @@ export default function RepairLogFormPage() {
         <>
       <section className="repair-summary-panel">
         <div>
-          <span>Thiết bị</span>
-          <strong>{device ? `${device.code} - ${device.name}` : "Đang tải..."}</strong>
+          <span>{isCompletingReport ? "Phạm vi sửa chữa" : "Thiết bị"}</span>
+          <strong>
+            {isCompletingReport
+              ? "Tất cả thiết bị trong phiếu"
+              : device ? `${device.code} - ${device.name}` : "Đang tải..."}
+          </strong>
         </div>
         <div>
           <span>Phòng</span>
-          <strong>{device?.room?.code || "..."}</strong>
+          <strong>{isCompletingReport ? "Theo phiếu báo hỏng" : device?.room?.code || "..."}</strong>
         </div>
         {reportId && (
           <div>
@@ -167,7 +172,7 @@ export default function RepairLogFormPage() {
 
         <div className="form-actions">
           <button type="submit">Lưu lịch sử sửa chữa</button>
-          {deviceId && <button type="button" className="secondary-button" onClick={() => navigate(`/devices/${deviceId}/history`)}>Xem lịch sử</button>}
+          {deviceId && !isCompletingReport && <button type="button" className="secondary-button" onClick={() => navigate(`/devices/${deviceId}/history`)}>Xem lịch sử</button>}
         </div>
       </form>
 

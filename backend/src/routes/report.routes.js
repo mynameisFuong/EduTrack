@@ -13,7 +13,7 @@ const reportStatusLabels = {
 
 function normalizeDeviceIds(body) {
   if (Array.isArray(body.deviceIds)) {
-    return body.deviceIds.map(Number).filter(Number.isInteger);
+    return [...new Set(body.deviceIds.map(Number).filter(Number.isInteger))];
   }
 
   if (body.deviceId) {

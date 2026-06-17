@@ -8,7 +8,7 @@ export default function ReportCreatePage() {
   const [rooms, setRooms] = useState([]);
   const [devices, setDevices] = useState([]);
   const [roomId, setRoomId] = useState("");
-  const [deviceId, setDeviceId] = useState("");
+  const [selectedDeviceIds, setSelectedDeviceIds] = useState([]);
   const [description, setDescription] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -24,7 +24,7 @@ export default function ReportCreatePage() {
 
   async function loadDevices(nextRoomId) {
     setDevices([]);
-    setDeviceId("");
+    setSelectedDeviceIds([]);
 
     if (!nextRoomId) {
       return;
@@ -36,6 +36,14 @@ export default function ReportCreatePage() {
     } catch (err) {
       setError(err.response?.data?.message || "Không tải được danh sách thiết bị");
     }
+  }
+
+  function toggleDevice(deviceId) {
+    setSelectedDeviceIds((current) =>
+      current.includes(deviceId)
+        ? current.filter((id) => id !== deviceId)
+        : [...current, deviceId]
+    );
   }
 
   useEffect(() => {
@@ -50,13 +58,13 @@ export default function ReportCreatePage() {
     try {
       await api.post("/reports", {
         roomId: Number(roomId),
-        deviceIds: [Number(deviceId)],
+        deviceIds: selectedDeviceIds,
         description
       });
 
       setMessage("Gửi phiếu báo hỏng thành công");
       setDescription("");
-      setDeviceId("");
+      setSelectedDeviceIds([]);
     } catch (err) {
       setError(err.response?.data?.message || "Không gửi được phiếu báo hỏng");
     }
@@ -82,15 +90,34 @@ export default function ReportCreatePage() {
           </select>
         </label>
 
-        <label>
-          Chọn thiết bị
-          <select value={deviceId} onChange={(e) => setDeviceId(e.target.value)} disabled={!roomId}>
-            <option value="">-- Chọn thiết bị --</option>
-            {devices.map((device) => (
-              <option key={device.id} value={device.id}>{device.code} - {device.name}</option>
-            ))}
-          </select>
-        </label>
+        <section className="wide-field device-picker" aria-labelledby="device-picker-title">
+          <div className="device-picker-header">
+            <h3 id="device-picker-title">Chọn thiết bị</h3>
+            <span>{selectedDeviceIds.length} đã chọn</span>
+          </div>
+
+          {!roomId ? (
+            <p className="device-picker-empty">Chọn phòng học trước để xem danh sách thiết bị.</p>
+          ) : devices.length === 0 ? (
+            <p className="device-picker-empty">Phòng này chưa có thiết bị.</p>
+          ) : (
+            <div className="device-checkbox-grid">
+              {devices.map((device) => (
+                <label key={device.id} className="device-checkbox-item">
+                  <input
+                    type="checkbox"
+                    checked={selectedDeviceIds.includes(device.id)}
+                    onChange={() => toggleDevice(device.id)}
+                  />
+                  <span>
+                    <strong>{device.code}</strong>
+                    {device.name}
+                  </span>
+                </label>
+              ))}
+            </div>
+          )}
+        </section>
 
         <label className="wide-field">
           Mô tả sự cố

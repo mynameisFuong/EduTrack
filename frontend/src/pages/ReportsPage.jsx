@@ -90,15 +90,14 @@ export default function ReportsPage() {
   }
 
   function openRepairForm(report) {
-    const firstDevice = report.devices[0]?.device;
     setOpenActionReportId(null);
 
-    if (!firstDevice) {
+    if (!report.devices?.length) {
       setError("Phiếu này chưa có thiết bị để ghi sửa chữa");
       return;
     }
 
-    navigate(`/repair-logs/new?reportId=${report.id}&deviceId=${firstDevice.id}&complete=1`);
+    navigate(`/repair-logs/new?reportId=${report.id}&complete=1`);
   }
 
   const filteredReports = statusFilter

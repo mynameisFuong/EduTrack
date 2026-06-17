@@ -544,6 +544,86 @@ a {
   grid-template-columns: repeat(2, minmax(220px, 1fr));
 }
 
+.device-picker {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 16px;
+}
+
+.device-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.device-picker-header h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.device-picker-header span {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  color: #b0002a;
+  background: #fff1f4;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.device-picker-empty {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.device-checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.device-checkbox-item {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  min-height: 64px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 12px;
+}
+
+.device-checkbox-item input {
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  accent-color: #b0002a;
+}
+
+.device-checkbox-item span {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+  color: #344054;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.device-checkbox-item strong {
+  color: #111827;
+  font-size: 13px;
+  font-weight: 900;
+}
+
 .room-form h2,
 .section-heading-row h2 {
   color: var(--text);
@@ -777,6 +857,10 @@ tr:hover td {
   .report-form,
   .toolbar,
   .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .device-checkbox-grid {
     grid-template-columns: 1fr;
   }
 
