@@ -1,6 +1,9 @@
 ﻿const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
+
+dotenv.config();
+
 const authRouter = require("./routes/auth.routes");
 const roomRouter = require("./routes/room.routes");
 const roomDeviceRouter = require("./routes/room-device.routes");
@@ -11,19 +14,13 @@ const dashboardRouter = require("./routes/dashboard.routes");
 const exportRouter = require("./routes/export.routes");
 const notificationRouter = require("./routes/notification.routes");
 const userRouter = require("./routes/user.routes");
-const allowedOrigins = [
-  "http://localhost:5173",
-  "http://127.0.0.1:5173",
-  "https://edu-track-psi-dun.vercel.app"
-];
-
-dotenv.config();
 
 const app = express();
-// const allowedOrigins = (process.env.CORS_ORIGINS || "http://localhost:5173,http://localhost:5174,http://localhost:3000")
-//   .split(",")
-//   .map((origin) => origin.trim())
-//   .filter(Boolean);
+const allowedOrigins = (process.env.CORS_ORIGINS ||
+  "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000,https://edu-track-psi-dun.vercel.app")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 app.use(cors({
   origin(origin, callback) {
@@ -58,8 +55,17 @@ app.use("/api/export", exportRouter);
 app.use("/api/notifications", notificationRouter);
 app.use("/api/users", userRouter);
 
-const PORT = process.env.PORT || 5000;
+const PORT = Number(process.env.PORT || 5050);
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+});
+
+server.on("error", (error) => {
+  if (error.code === "EADDRINUSE") {
+    console.error(`Port ${PORT} đang được sử dụng. Hãy đổi PORT hoặc tắt dịch vụ đang chiếm port này.`);
+    process.exit(1);
+  }
+
+  throw error;
 });
