@@ -8,6 +8,7 @@ const router = express.Router();
 const MAX_FAILED_LOGIN = 5;
 const LOCK_MINUTES = 15;
 
+// login()
 router.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -39,6 +40,7 @@ router.post("/login", async (req, res) => {
       });
     }
 
+    // verify password
     const isValidPassword = await bcrypt.compare(password, user.passwordHash);
 
     if (!isValidPassword) {
@@ -70,6 +72,7 @@ router.post("/login", async (req, res) => {
       }
     });
 
+    // generate token
     const token = jwt.sign(
       {
         id: user.id,
@@ -96,6 +99,8 @@ router.post("/login", async (req, res) => {
   }
 });
 
+
+// getCurrentUser
 router.get("/me", authenticate, async (req, res) => {
   try {
     const user = await prisma.user.findUnique({

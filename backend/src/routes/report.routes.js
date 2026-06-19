@@ -24,6 +24,7 @@ function normalizeDeviceIds(body) {
   return [];
 }
 
+// createReportNotifications()
 async function createReportNotifications(tx, report, actorId) {
   const recipients = await tx.user.findMany({
     where: { role: { in: ["ADMIN", "TECHNICIAN"] } },
@@ -61,6 +62,8 @@ async function createStatusNotification(report, actorId, status) {
   });
 }
 
+
+// createReport()
 router.post("/", authenticate, async (req, res) => {
   try {
     const roomId = Number(req.body.roomId);
@@ -85,6 +88,7 @@ router.post("/", authenticate, async (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy phòng học" });
     }
 
+    // validateDevicesInRoom()
     const devices = await prisma.device.findMany({
       where: {
         id: { in: deviceIds },
@@ -156,6 +160,8 @@ router.get("/", authenticate, authorize("ADMIN", "TECHNICIAN"), async (req, res)
   }
 });
 
+
+// updateReportStatus()
 router.patch("/:id/status", authenticate, authorize("ADMIN", "TECHNICIAN"), async (req, res) => {
   try {
     const id = Number(req.params.id);

@@ -14,6 +14,7 @@ function formatDate(value) {
 export default function UsersPage() {
   const user = useMemo(() => JSON.parse(localStorage.getItem("user") || "null"), []);
   const [users, setUsers] = useState([]);
+  const [usersForCounts, setUsersForCounts] = useState([]);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [form, setForm] = useState(emptyForm);
@@ -27,8 +28,14 @@ export default function UsersPage() {
     setIsLoading(true);
     setError("");
     try {
-      const res = await api.get("/users", { params: { ...(search ? { search } : {}), ...(roleFilter ? { role: roleFilter } : {}) } });
-      setUsers(res.data);
+      const searchParams = { ...(search ? { search } : {}) };
+      const [usersRes, countsRes] = await Promise.all([
+        api.get("/users", { params: { ...searchParams, ...(roleFilter ? { role: roleFilter } : {}) } }),
+        api.get("/users", { params: searchParams })
+      ]);
+
+      setUsers(usersRes.data);
+      setUsersForCounts(countsRes.data);
     } catch (err) {
       setError(err.response?.data?.message || "Không tải được danh sách người dùng");
     } finally {
@@ -38,9 +45,9 @@ export default function UsersPage() {
 
   useEffect(() => { loadUsers(); }, [roleFilter]);
 
-  const adminCount = users.filter((item) => item.role === "ADMIN").length;
-  const techCount = users.filter((item) => item.role === "TECHNICIAN").length;
-  const reporterCount = users.filter((item) => item.role === "REPORTER").length;
+  const adminCount = usersForCounts.filter((item) => item.role === "ADMIN").length;
+  const techCount = usersForCounts.filter((item) => item.role === "TECHNICIAN").length;
+  const reporterCount = usersForCounts.filter((item) => item.role === "REPORTER").length;
 
   function updateField(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -105,14 +112,14 @@ export default function UsersPage() {
   }
 
   return (
-    <AppLayout active="users" title="Quản lý người dùng" subtitle={`${users.length} người dùng trong hệ thống`} user={user}>
+    <AppLayout active="users" title="Quản lý người dùng" subtitle={`${usersForCounts.length} người dùng trong hệ thống`} user={user}>
       <div className="admin-page-toolbar">
         <div className="admin-search-box"><span>⌕</span><input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") loadUsers(); }} placeholder="Tìm tên, email, username..." /></div>
         <button type="button" className="primary-action" onClick={openCreateForm}>+ Thêm người dùng</button>
       </div>
 
       <div className="filter-pills">
-        <button type="button" className={!roleFilter ? "active" : ""} onClick={() => setRoleFilter("")}>Tất cả ({users.length})</button>
+        <button type="button" className={!roleFilter ? "active" : ""} onClick={() => setRoleFilter("")}>Tất cả ({usersForCounts.length})</button>
         <button type="button" className={roleFilter === "ADMIN" ? "active" : ""} onClick={() => setRoleFilter("ADMIN")}>Quản trị viên ({adminCount})</button>
         <button type="button" className={roleFilter === "TECHNICIAN" ? "active" : ""} onClick={() => setRoleFilter("TECHNICIAN")}>Kỹ thuật viên ({techCount})</button>
         <button type="button" className={roleFilter === "REPORTER" ? "active" : ""} onClick={() => setRoleFilter("REPORTER")}>Người dùng ({reporterCount})</button>

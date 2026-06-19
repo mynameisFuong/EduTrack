@@ -33,6 +33,8 @@ async function createCompletedNotification(tx, report, actorId) {
   });
 }
 
+
+// createRepairLog()
 router.post("/", authenticate, authorize("ADMIN", "TECHNICIAN"), async (req, res) => {
   try {
     const deviceId = Number(req.body.deviceId);
@@ -81,6 +83,7 @@ router.post("/", authenticate, authorize("ADMIN", "TECHNICIAN"), async (req, res
       return res.status(404).json({ message: "Không tìm thấy thiết bị" });
     }
 
+    // validateReportDevice()
     if (!completeReport && reportId !== null) {
       const reportDevice = await prisma.damageReportDevice.findUnique({
         where: {
@@ -132,6 +135,8 @@ router.post("/", authenticate, authorize("ADMIN", "TECHNICIAN"), async (req, res
           }))
         });
 
+
+        // updateRelatedReport()
         await tx.device.updateMany({
           where: { id: { in: deviceIds } },
           data: { status: "GOOD" }

@@ -11,6 +11,8 @@ function normalizeCode(code) {
   return String(code || "").trim().toUpperCase();
 }
 
+
+// listDevices()
 router.get("/", authenticate, authorize("ADMIN", "TECHNICIAN", "REPORTER"), async (req, res) => {
   try {
     const search = String(req.query.search || "").trim();
@@ -45,6 +47,8 @@ router.get("/", authenticate, authorize("ADMIN", "TECHNICIAN", "REPORTER"), asyn
   }
 });
 
+
+// getRepairHistory()
 router.get("/:id/repair-logs", authenticate, authorize("ADMIN", "TECHNICIAN"), async (req, res) => {
   try {
     const id = Number(req.params.id);
@@ -78,6 +82,7 @@ router.get("/:id/repair-logs", authenticate, authorize("ADMIN", "TECHNICIAN"), a
   }
 });
 
+// updateDevice()
 router.put("/:id", authenticate, authorize("ADMIN"), async (req, res) => {
   try {
     const id = Number(req.params.id);
@@ -138,6 +143,7 @@ router.put("/:id", authenticate, authorize("ADMIN"), async (req, res) => {
   }
 });
 
+// changeStatus()
 router.patch("/:id/status", authenticate, authorize("ADMIN", "TECHNICIAN"), async (req, res) => {
   try {
     const id = Number(req.params.id);
