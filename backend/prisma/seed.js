@@ -6,6 +6,15 @@ const bcrypt = require("bcrypt");
 const prisma = new PrismaClient();
 
 async function main() {
+  if (process.env.SEED_IF_EMPTY === "true") {
+    const userCount = await prisma.user.count();
+
+    if (userCount > 0) {
+      console.log(`Seed skipped: database already has ${userCount} user(s)`);
+      return;
+    }
+  }
+
   await prisma.notification.deleteMany();
   await prisma.repairLog.deleteMany();
   await prisma.damageReportDevice.deleteMany();
