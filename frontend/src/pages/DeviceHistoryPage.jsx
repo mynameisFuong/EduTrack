@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import api from "../api";
+import AppLayout from "../components/AppLayout";
 
 const statusLabels = {
   GOOD: "Tốt",
@@ -9,6 +10,17 @@ const statusLabels = {
 };
 
 const permissionDeniedMessage = "Bạn không có quyền thực hiện thao tác này";
+
+function formatDate(value) {
+  if (!value) return "-";
+  return new Date(value).toLocaleDateString("vi-VN");
+}
+
+function getStatusClass(status) {
+  if (status === "GOOD") return "status-pill good";
+  if (status === "REPAIRING") return "status-pill warning";
+  return "status-pill danger";
+}
 
 export default function DeviceHistoryPage() {
   const { deviceId } = useParams();
@@ -45,43 +57,49 @@ export default function DeviceHistoryPage() {
     loadHistory();
   }, [deviceId, canViewRepairHistory]);
 
-  function logout() {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/login", { replace: true });
-  }
-
   return (
-    <main className="app-shell">
-      <aside className="sidebar">
-        <h2>CSVC</h2>
+    <AppLayout
+      active="devices"
+      title="Lịch sử sửa chữa"
+      subtitle={device ? `${device.code} - ${device.name}` : "Theo dõi các lần bảo trì và sửa chữa thiết bị"}
+      user={user}
+    >
+      <nav className="breadcrumb history-breadcrumb">
         <Link to="/dashboard">Trang chủ</Link>
-        <Link to="/rooms">Phòng học</Link>
-        <Link to="/reports/new">Báo hỏng</Link>
-        <Link to="/reports">Phiếu báo hỏng</Link>
-      </aside>
+        <span>/</span>
+        <Link to="/devices">Thiết bị</Link>
+        <span>/</span>
+        <strong>{device?.code || "Lịch sử sửa chữa"}</strong>
+      </nav>
 
-      <section className="content-panel">
-        <nav className="breadcrumb">
-          <Link to="/dashboard">Trang chủ</Link>
-          <span>/</span>
-          <Link to="/rooms">Phòng {device?.room?.code || "..."}</Link>
-          <span>/</span>
-          <strong>Lịch sử bảo trì</strong>
-        </nav>
+      {!canViewRepairHistory ? (
+        <p className="error-message">{permissionDeniedMessage}</p>
+      ) : (
+        <>
+          <section className="repair-summary-panel history-summary-panel">
+            <div>
+              <span>Thiết bị</span>
+              <strong>{device ? `${device.code} - ${device.name}` : "Đang tải..."}</strong>
+            </div>
+            <div>
+              <span>Phòng</span>
+              <strong>{device?.room?.code || "..."}</strong>
+            </div>
+            <div>
+              <span>Số lần sửa chữa</span>
+              <strong>{repairLogs.length}</strong>
+            </div>
+          </section>
 
-        <header className="page-header">
-          <div>
-            <h1>Lịch sử bảo trì: {device?.code || "..."}</h1>
-            <p>{device?.name} - {user?.fullName}</p>
+          <div className="history-actions">
+            <button type="button" className="secondary-button" onClick={() => navigate("/devices")}>Quay lại</button>
+            <button type="button" onClick={() => navigate(`/repair-logs/new?deviceId=${deviceId}`)}>Ghi nhận sửa chữa</button>
           </div>
-          <button className="secondary-button" onClick={logout}>Đăng xuất</button>
-        </header>
 
-        {error && <p className="error-message">{error}</p>}
+          {error && <p className="error-message">{error}</p>}
 
-        <section className="table-section">
-          <table>
+          <section className="dark-table-wrap history-table-wrap">
+            <table className="admin-data-table">
             <thead>
               <tr>
                 <th>Ngày sửa</th>
@@ -99,18 +117,19 @@ export default function DeviceHistoryPage() {
                 <tr><td colSpan="6">Thiết bị chưa có lịch sử sửa chữa</td></tr>
               ) : repairLogs.map((log) => (
                 <tr key={log.id}>
-                  <td>{log.repairedAt?.slice(0, 10)}</td>
+                  <td>{formatDate(log.repairedAt)}</td>
                   <td>{log.content}</td>
                   <td>{log.technician?.fullName}</td>
                   <td>{log.quantity}</td>
-                  <td>{statusLabels[log.afterStatus]}</td>
+                  <td><span className={getStatusClass(log.afterStatus)}>{statusLabels[log.afterStatus]}</span></td>
                   <td>{log.report ? `#${log.report.id}` : "Không có"}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </section>
-      </section>
-    </main>
+          </section>
+        </>
+      )}
+    </AppLayout>
   );
 }
